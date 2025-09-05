@@ -17,12 +17,26 @@ pipeline {
             mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOPATH"
             go env | sort
             go test -v ./... 2>&1 | go-junit-report -set-exit-code > report.xml
+            #Generate coverage report
+            go test -coverprofile=coverage.out -covermode=atomic ./...
+            go tool cover -func=coverage.out -o coverage.html
+
+            mkdir -p reports
+            mv coverage.html reports/
           '''
         }
       }
       post {
         always {
             junit 'bugtracker-backend/report.xml'
+            publishHTML(target: [
+              allowMissing: false,
+              alwaysLinkToLastBuild: true,
+              keepAll: true,
+              reportDir: 'bugtracker-backend/reports',
+              reportFiles: 'coverage.html',
+              reportName: 'Backend Coverage Report'
+            ])
         }
 
       }

@@ -2,18 +2,18 @@ pipeline {
     agent any
 
     stage('Unit Tests - Backend') {
-  agent {
-    docker {
-      image 'snakee/golang-junit:1.21'
-      args """
-        -u 1000:1000 \
-        -e HOME=${WORKSPACE} \
-        -e XDG_CACHE_HOME=${WORKSPACE}/.cache \
-        -e GOCACHE=${WORKSPACE}/.cache/go-build \
-        -e GOPATH=${WORKSPACE}/go \
-        -e GOMODCACHE=${WORKSPACE}/.cache/gomod
-      """
-    }
+        agent {
+            docker {
+            image 'snakee/golang-junit:1.21'
+            args """
+                -u 1000:1000 \
+                -e HOME=${WORKSPACE} \
+                -e XDG_CACHE_HOME=${WORKSPACE}/.cache \
+                -e GOCACHE=${WORKSPACE}/.cache/go-build \
+                -e GOPATH=${WORKSPACE}/go \
+                -e GOMODCACHE=${WORKSPACE}/.cache/gomod
+            """
+            }
   }
   steps {
     dir('bugtracker-backend') {
@@ -23,8 +23,8 @@ pipeline {
         go env | sort
         go test -v ./...
       '''
+        }   
+        }
     }
-  }
-}
 
 }

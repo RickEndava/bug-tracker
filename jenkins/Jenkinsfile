@@ -17,9 +17,7 @@ pipeline {
             mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOPATH"
             go env | sort
             go test -v ./... | tee result.out
-            cat result.out | go-junit-report > report.xml
           '''
-          junit 'bugtracker-backend/report.xml'
         }
       }
     }

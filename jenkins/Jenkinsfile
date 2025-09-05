@@ -16,9 +16,12 @@ pipeline {
           sh '''
             mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOPATH"
             go env | sort
-            #Generate coverage report
+            # Generate coverage report
             go test -coverprofile=coverage.out -covermode=atomic ./...
             go tool cover -func=coverage.out -o coverage.html
+
+            # Dummy coverage.html (solo para pruebas)
+            echo "<html><body><h1>Dummy Coverage Report</h1></body></html>" > coverage.html
 
             mkdir -p reports
             mv coverage.html reports/

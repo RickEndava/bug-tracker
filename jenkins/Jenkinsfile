@@ -16,9 +16,15 @@ pipeline {
           sh '''
             mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOPATH"
             go env | sort
-            go test -v ./... | tee result.out
+            go test -v ./... 2>&1 | go-junit-report -set-exit-code > report.xml
           '''
         }
+      }
+      post {
+        always {
+            junit 'bugtracker-backend/report.xml'
+        }
+
       }
     }
 

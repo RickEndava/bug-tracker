@@ -1,46 +1,46 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
-        stage('Unit Tests - Backend') {
-            agent {
-                docker {
-                    image 'snakee/golang-junit:1.21'
-                    args """
-                        -u 1000:1000 \
-                        -e HOME=${WORKSPACE} \
-                        -e XDG_CACHE_HOME=${WORKSPACE}/.cache \
-                        -e GOCACHE=${WORKSPACE}/.cache/go-build \
-                        -e GOPATH=${WORKSPACE}/go \
-                        -e GOMODCACHE=${WORKSPACE}/.cache/gomod
-                        """
-                    reuseNode true
-                }
-            }
-            steps {
-                dir('bugtracker-backend'){
-                    sh 'mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOPATH"'
-                    sh 'go env | sort'
-                    sh 'go test -v ./...'
-                    
-                }
-            }
-        stage ('Unit Tests - Frontend') {}
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                dir('bugtracker-frontend') {
-                    sh '''
-                    npm ci
-                    npm  test
-                    '''
-                }
-            }
-        }            
-        
+  stages {
+
+    stage('Unit Tests - Backend') {
+      agent {
+        docker {
+          image 'snakee/golang-junit:1.21'
+          args "-u 1000:1000 -e HOME=${WORKSPACE} -e XDG_CACHE_HOME=${WORKSPACE}/.cache -e GOCACHE=${WORKSPACE}/.cache/go-build -e GOPATH=${WORKSPACE}/go -e GOMODCACHE=${WORKSPACE}/.cache/gomod"
+          reuseNode true
+        }
+      }
+      steps {
+        dir('bugtracker-backend') {
+          sh '''
+            mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOPATH"
+            go env | sort
+            go test -v ./... | tee result.out
+            cat result.out | go-junit-report > report.xml
+          '''
+          junit 'bugtracker-backend/report.xml'
+        }
+      }
     }
+
+    stage('Unit Tests - Frontend') {
+      agent {
+        docker {
+          image 'node:20-alpine'
+          args "-u 1000:1000 -e HOME=${WORKSPACE}"
+          reuseNode true
+        }
+      }
+      steps {
+        dir('bugtracker-frontend') {
+          sh '''
+            npm ci
+            npm test
+          '''
+        }
+      }
+    }
+
+  }
 }
